@@ -1,0 +1,191 @@
+/* src/styles/Scan.css */
+
+.scan-container {
+  min-height: 100vh;
+  padding: 6rem 2rem 4rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.scan-header {
+  text-align: center;
+  margin-bottom: 2rem;
+  z-index: 10;
+}
+
+.scan-header h1 {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.scan-tabs {
+  display: flex;
+  gap: 1rem;
+  background: var(--glass);
+  padding: 0.5rem;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  margin-bottom: 2rem;
+  z-index: 10;
+}
+
+.tab-btn {
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  padding: 0.75rem 2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tab-btn.active {
+  background: rgba(0, 255, 153, 0.15);
+  color: var(--accent);
+  box-shadow: 0 0 10px rgba(0, 255, 153, 0.2);
+}
+
+.scan-box {
+  width: 100%;
+  max-width: 600px;
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  z-index: 10;
+  min-height: 400px;
+}
+
+/* Upload Interface */
+.upload-zone {
+  width: 100%;
+  height: 250px;
+  border: 2px dashed rgba(0, 255, 153, 0.5);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  background: rgba(0, 255, 153, 0.02);
+  position: relative;
+  overflow: hidden;
+}
+
+.upload-zone:hover, .upload-zone.drag-active {
+  background: rgba(0, 255, 153, 0.08);
+  border-color: var(--accent);
+  box-shadow: 0 0 15px rgba(0, 255, 153, 0.2);
+}
+
+.preview-image {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  object-fit: contain;
+  background: rgba(0,0,0,0.5);
+}
+
+/* Camera Interface */
+.camera-container {
+  width: 100%;
+  height: 300px;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid var(--glass-border);
+  background: #000;
+}
+
+.camera-feed {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-overlay-controls {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 1rem;
+  background: linear-gradient(transparent, rgba(0,0,0,0.8));
+  display: flex;
+  justify-content: center;
+}
+
+/* Analysis Overlay Effect */
+.scanning-overlay {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(10, 10, 10, 0.85);
+  backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 50;
+  border-radius: inherit;
+}
+
+/* Radar & Scanner Line Animation */
+.radar {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  margin-bottom: 2rem;
+  overflow: hidden;
+  box-shadow: 0 0 20px rgba(0, 255, 153, 0.3);
+}
+
+.radar::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 50%; height: 50%;
+  background: conic-gradient(transparent 0deg, var(--accent) 90deg, transparent 90deg);
+  transform-origin: 0 0;
+  animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
+
+.scan-line {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 4px;
+  background: var(--accent);
+  box-shadow: 0 0 10px var(--accent);
+  animation: scanDown 2s ease-in-out infinite alternate;
+}
+
+@keyframes scanDown {
+  0% { top: 0; }
+  100% { top: calc(100% - 4px); }
+}
+
+.action-btn {
+  margin-top: 2rem;
+  width: 100%;
+  padding: 1rem;
+  font-size: 1.1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
