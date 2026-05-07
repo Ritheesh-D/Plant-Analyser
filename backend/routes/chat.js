@@ -1,46 +1,49 @@
 import express from 'express';
-import { GoogleGenAI } from '@google/genai';
-import { requireAuth } from '../middleware/authMiddleware.js';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const router = express.Router();
 
-router.post('/', requireAuth, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    const { message, language, history = [] } = req.body;
-    
-    if (!process.env.GEMINI_API_KEY) return res.status(500).json({ error: 'GEMINI_API_KEY not configured' });
+    const { message, language, history } = req.body;
+    if (!message) return res.status(400).json({ error: 'No message' });
 
-    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+    console.log('Chat message:', message, 'Language:', language);
 
-    const systemInstruction = `You are a plant expert botanist. Answer only plant-related questions.
-Always reply in the following language: ${language === 'ta' ? 'Tamil' : 'English'}.
-For each plant query provide minimum 4 paragraphs:
-- Plant details
-- Herbal and medicinal uses
-- Where it grows (habitat)
-- Precautions and side effects
-If question is not plant-related, politely redirect to plant topics.`;
+    const Groq = (await import('groq-sdk')).default;
+    const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
-    const contents = history.map(msg => ({
-      role: msg.role === 'user' ? 'user' : 'model',
-      parts: [{ text: msg.message }]
-    }));
-    
-    // Add current user message
-    contents.push({ role: 'user', parts: [{ text: message }] });
+    const systemPrompt = language === 'ta'
+      ? `நீங்கள் ஒரு தாவரவியல் நிபுணர். தாவரங்கள் பற்றிய கேள்விகளுக்கு மட்டும் தமிழில் பதில் தரவும். ஒவ்வொரு தாவரம் பற்றியும் விரிவாக சொல்லவும்: 1. தாவரத்தின் பெயர் மற்றும் விவரம் 2. மூலிகை பயன்கள் 3. மருத்துவ பயன்கள் 4. வாழிடம் 5. பக்க விளைவுகள். குறைந்தது 4 பத்திகளில் பதில் தரவும்.`
+      : `You are an expert botanist. Answer only plant-related questions in detail. For each plant provide minimum 4 paragraphs: 1. Plant name description and origin 2. Herbal and medicinal uses 3. Habitat where it grows 4. Precautions and side effects. If not plant-related politely redirect to plant topics.`;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      config: {
-        systemInstruction: { parts: [{ text: systemInstruction }] }
-      },
-      contents: contents
+    const messages = [{ role: 'system', content: systemPrompt }];
+
+    if (history && history.length > 0) {
+      history.slice(-6).forEach(msg => {
+        if (msg.role === 'user' || msg.role === 'assistant') {
+          messages.push({ role: msg.role, content: msg.content });
+        }
+      });
+    }
+
+    messages.push({ role: 'user', content: message });
+
+    const completion = await groq.chat.completions.create({
+      model: 'llama-3.3-70b-versatile',
+      messages: messages,
+      max_tokens: 1024,
+      temperature: 0.7
     });
 
-    res.json({ reply: response.text });
-  } catch (error) {
-    console.error('Chat Error:', error);
-    res.status(500).json({ error: 'Failed to process chat message' });
+    const reply = completion.choices[0]?.message?.content || 'Sorry could not generate response.';
+    console.log('✅ Groq reply generated');
+    return res.json({ reply });
+
+  } catch (err) {
+    console.error('Chat error:', err.message);
+    return res.json({ reply: 'Sorry I am temporarily unavailable. Please try again later.' });
   }
 });
 

@@ -64,6 +64,29 @@ function History() {
     }
   };
 
+  const clearAllHistory = async () => {
+    if (!window.confirm('Are you sure you want to delete ALL scan history? This cannot be undone.')) return;
+    
+    try {
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      const userId = currentUser ? currentUser.id : user?.id;
+      if (!userId) return;
+
+      const { error } = await supabase
+        .from('scan_history')
+        .delete()
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      setHistoryFiles([]);
+      alert('All history cleared successfully!');
+    } catch (err) {
+      console.error('Clear all error:', err);
+      alert('Failed to clear history. Please try again.');
+    }
+  };
+
   const navigateToDetails = (resultJson) => {
     navigate('/result', { state: { scanResult: resultJson } });
   };
@@ -101,10 +124,48 @@ function History() {
       </div>
 
       <div className="history-header">
-        <h1 className="history-title glow-text">
-          <HistoryIcon size={36} className="text-accent" />
-          {t('historyTitle')}
-        </h1>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'center',
+          marginBottom: '24px',
+          width: '100%'
+        }}>
+          <h1 className="history-title glow-text" style={{ margin: 0 }}>
+            <HistoryIcon size={36} className="text-accent" />
+            {t('historyTitle')}
+          </h1>
+          
+          {historyFiles.length > 0 && (
+            <button
+              onClick={clearAllHistory}
+              style={{
+                background: 'rgba(255,80,80,0.1)',
+                border: '1px solid rgba(255,80,80,0.4)',
+                color: '#ff6464',
+                padding: '10px 20px',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '14px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => {
+                e.target.style.background = 'rgba(255,80,80,0.2)';
+                e.target.style.borderColor = '#ff6464';
+              }}
+              onMouseOut={(e) => {
+                e.target.style.background = 'rgba(255,80,80,0.1)';
+                e.target.style.borderColor = 'rgba(255,80,80,0.4)';
+              }}
+            >
+              <Trash2 size={16} /> Clear All History
+            </button>
+          )}
+        </div>
 
         {/* Filter Controls */}
         <div className="history-controls">

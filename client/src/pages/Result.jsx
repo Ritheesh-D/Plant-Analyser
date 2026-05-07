@@ -11,49 +11,62 @@ const Result = () => {
   const [scannedImage, setScannedImage] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  const saveToHistory = async (plantData) => {
     try {
-      // Try multiple localStorage keys to ensure data maps safely across the UI routing
-      const raw = 
-        localStorage.getItem('plant_scan_result') ||
-        localStorage.getItem('scanResult') ||
-        localStorage.getItem('plantResult');
-      const img = localStorage.getItem('scanned_image');
-
-      if (!raw) {
-        console.error('No scan result found in localStorage');
-        navigate('/dashboard');
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      
+      if (userError || !user) {
+        console.log('No user logged in - skipping history save');
         return;
       }
 
-      const parsed = JSON.parse(raw);
-      console.log('Plant data loaded:', parsed); // Debug log
-      setPlant(parsed);
-      setScannedImage(img);
-      
-      const saveHistory = async () => {
-        const { data: { session } } = await supabase.auth.getSession();
-        if (session && !localStorage.getItem(`saved_${parsed.id || parsed.commonName}`)) {
-          await supabase.from('scan_history').insert({
-            user_id: session.user.id,
-            plant_name: parsed.commonName || parsed.name || 'Unknown',
-            scientific_name: parsed.scientificName || 'Unknown',
-            result_json: parsed,
-            image_url: img || null,
-            scan_date: new Date().toISOString()
-          });
-          localStorage.setItem(`saved_${parsed.id || parsed.commonName}`, 'true');
-        }
-      };
-      saveHistory();
+      console.log('Saving to history for user:', user.id);
+      console.log('Plant data:', plantData?.commonName);
+
+      const { data, error } = await supabase
+        .from('scan_history')
+        .insert({
+          user_id: user.id,
+          plant_name: plantData?.commonName || plantData?.name || 'Unknown Plant',
+          scientific_name: plantData?.scientificName || '',
+          result_json: plantData,
+          scan_date: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Supabase save error:', error);
+        return;
+      }
+
+      console.log('✅ History saved successfully!', data);
 
     } catch (err) {
-      console.error('Parse error:', err);
+      console.error('saveToHistory error:', err.message);
+    }
+  };
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('plant_scan_result');
+      const img = localStorage.getItem('scanned_image');
+
+      if (!raw) { navigate('/dashboard'); return; }
+
+      const parsed = JSON.parse(raw);
+      console.log('Plant loaded:', parsed?.commonName);
+      setPlant(parsed);
+      setScannedImage(img);
+
+      // Save to history immediately
+      saveToHistory(parsed);
+
+    } catch (err) {
+      console.error(err);
       navigate('/dashboard');
     } finally {
       setLoading(false);
     }
-  }, [navigate]);
+  }, []);
 
   if (loading) {
     return (

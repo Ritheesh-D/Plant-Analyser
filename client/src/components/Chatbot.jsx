@@ -1,182 +1,242 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { MessageSquare, X, Send, Trash2, Sprout } from 'lucide-react';
-import { supabase } from '../services/supabase';
-import { useAuth } from '../context/AuthContext';
+import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import '../styles/Chatbot.css';
 
-function Chatbot() {
+const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState([]);
-  const [inputValue, setInputValue] = useState('');
-  const [isTyping, setIsTyping] = useState(false);
-  
-  const { user } = useAuth();
-  const { language, t } = useLanguage();
-  const chatEndRef = useRef(null);
-
-  // Suggested questions based on language
-  const suggestions = language === 'ta' 
-    ? ["துளசி பற்றி சொல்லுங்கள்", "காய்ச்சலை குணப்படுத்தும் மூலிகைகள் எவை?"]
-    : ["Tell me about Tulsi", "What plants cure fever?"];
-
-  const togglePanel = () => setIsOpen(!isOpen);
-
-  const scrollToBottom = () => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const [messages, setMessages] = useState([
+    { role: 'assistant', content: 'Hello! Ask me any botanical questions.' }
+  ]);
+  const [input, setInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const messagesEndRef = useRef(null);
+  const { language } = useLanguage();
 
   useEffect(() => {
-    if (isOpen) scrollToBottom();
-  }, [messages, isOpen, isTyping]);
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
 
-  const handleSend = async (messageText) => {
-    const text = messageText || inputValue.trim();
-    if (!text) return;
+  const sendMessage = async (text) => {
+    const userMessage = text || input.trim();
+    if (!userMessage) return;
 
-    if (!user) {
-      setMessages(prev => [...prev, 
-        { role: 'user', message: text },
-        { role: 'bot', message: t('chatLogin') }
-      ]);
-      setInputValue('');
-      return;
-    }
-
-    // Add user message
-    const userMsg = { role: 'user', message: text };
-    setMessages(prev => [...prev, userMsg]);
-    setInputValue('');
-    setIsTyping(true);
+    setInput('');
+    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+    setLoading(true);
 
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
-      const payload = {
-        message: text,
-        language,
-        history: messages // pass previous history
-      };
-
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
       const response = await fetch(`${API_URL}/api/chat`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session.access_token}`
-        },
-        body: JSON.stringify(payload)
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userMessage,
+          language: language,
+          history: messages.slice(-6)
+        })
       });
 
-      if (!response.ok) throw new Error('API Error');
-
       const data = await response.json();
-      setMessages(prev => [...prev, { role: 'bot', message: data.reply }]);
+      const reply = data.reply || data.message || 'Sorry, I could not understand that.';
+
+      setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
 
     } catch (err) {
-      console.error(err);
-      setMessages(prev => [...prev, { 
-        role: 'bot', 
-        message: t('chatError')
+      console.error('Chat error:', err);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: language === 'ta'
+          ? 'மன்னிக்கவும், சேவை தற்காலிகமாக கிடைக்கவில்லை.'
+          : 'Sorry, service temporarily unavailable. Please try again.'
       }]);
     } finally {
-      setIsTyping(false);
+      setLoading(false);
     }
   };
 
-  const parseBotText = (text) => {
-    // Basic markdown formatting (splitting paragraphs)
-    return text.split('\n\n').map((paragraph, i) => (
-      <p key={i}>{paragraph}</p>
-    ));
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      sendMessage();
+    }
   };
+
+  const clearChat = () => {
+    setMessages([{ role: 'assistant', content: 'Hello! Ask me any botanical questions.' }]);
+  };
+
+  const suggestions = language === 'ta'
+    ? ['துளசி பற்றி சொல்லு', 'காய்ச்சலை குணப்படுத்தும் தாவரங்கள்']
+    : ['Tell me about Tulsi', 'What plants cure fever?'];
 
   return (
     <>
-      <button 
-        className={`chatbot-fab ${isOpen ? 'pulse-open' : ''}`}
-        onClick={togglePanel}
-      >
-        {isOpen ? <X size={28} /> : <MessageSquare size={28} />}
-      </button>
+      {/* Floating Button */}
+      {!isOpen && (
+        <button
+          onClick={() => setIsOpen(true)}
+          style={{
+            position: 'fixed', bottom: '32px', right: '32px',
+            width: '56px', height: '56px', borderRadius: '50%',
+            background: '#00ff99', border: 'none', cursor: 'pointer',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 0 20px rgba(0,255,153,0.5)', zIndex: 999,
+            fontSize: '24px'
+          }}
+        >
+          💬
+        </button>
+      )}
 
-      <div className={`chat-panel ${isOpen ? 'open' : ''}`}>
-        
-        <div className="chat-header">
-          <div className="chat-title">
-            <Sprout size={20} className="glow-icon" /> {t('aiAssistant')}
+      {/* Chat Panel */}
+      {isOpen && (
+        <div style={{
+          position: 'fixed', bottom: '20px', right: '20px',
+          width: '380px', height: '520px',
+          background: 'rgba(10,10,10,0.95)',
+          backdropFilter: 'blur(20px)',
+          border: '1px solid rgba(0,255,153,0.2)',
+          borderRadius: '20px',
+          display: 'flex', flexDirection: 'column',
+          zIndex: 999,
+          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+          animation: 'slideUp 0.3s ease'
+        }}>
+
+          {/* Header */}
+          <div style={{
+            display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            padding: '16px 20px',
+            borderBottom: '1px solid rgba(0,255,153,0.1)'
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '20px' }}>🌿</span>
+              <span style={{ color: '#00ff99', fontWeight: '700', fontSize: '16px' }}>
+                AI Botanist
+              </span>
+            </div>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button onClick={clearChat} style={{
+                background: 'transparent', border: 'none',
+                color: '#666', cursor: 'pointer', fontSize: '16px', padding: '4px'
+              }}>🗑️</button>
+              <button onClick={() => setIsOpen(false)} style={{
+                background: 'transparent', border: 'none',
+                color: '#666', cursor: 'pointer', fontSize: '16px', padding: '4px'
+              }}>✕</button>
+            </div>
           </div>
-          <div className="chat-actions">
-            <button className="chat-action-btn danger" onClick={() => setMessages([])} title="Clear Chat">
-              <Trash2 size={16} />
-            </button>
-            <button className="chat-action-btn" onClick={togglePanel}>
-              <X size={18} />
-            </button>
-          </div>
-        </div>
 
-        <div className="chat-messages">
-          {messages.length === 0 && (
-            <div className="text-secondary" style={{ textAlign: 'center', marginTop: '2rem', fontSize: '0.9rem' }}>
-              {t('chatHello')}
-            </div>
-          )}
-
-          {messages.map((msg, idx) => (
-            <div key={idx} className={`message-node ${msg.role === 'user' ? 'msg-user' : 'msg-bot'}`}>
-              {msg.role === 'bot' ? parseBotText(msg.message) : msg.message}
-            </div>
-          ))}
-
-          {isTyping && (
-            <div className="message-node msg-bot">
-              <div className="typing-dots">
-                <span></span><span></span><span></span>
-              </div>
-            </div>
-          )}
-          <div ref={chatEndRef} />
-        </div>
-
-        {/* Suggestions Row */}
-        {messages.length === 0 && user && (
-          <div className="chat-suggestions">
-            {suggestions.map((sug, i) => (
-              <div key={i} className="suggest-chip" onClick={() => handleSend(sug)}>
-                {sug}
+          {/* Messages */}
+          <div style={{
+            flex: 1, overflowY: 'auto', padding: '16px',
+            display: 'flex', flexDirection: 'column', gap: '12px'
+          }}>
+            {messages.map((msg, i) => (
+              <div key={i} style={{
+                display: 'flex',
+                justifyContent: msg.role === 'user' ? 'flex-end' : 'flex-start'
+              }}>
+                <div style={{
+                  maxWidth: '80%',
+                  padding: '10px 14px',
+                  borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                  background: msg.role === 'user'
+                    ? 'rgba(0,255,153,0.15)'
+                    : 'rgba(255,255,255,0.06)',
+                  border: msg.role === 'user'
+                    ? '1px solid rgba(0,255,153,0.3)'
+                    : '1px solid rgba(255,255,255,0.08)',
+                  color: '#fff',
+                  fontSize: '14px',
+                  lineHeight: '1.5',
+                  whiteSpace: 'pre-wrap'
+                }}>
+                  {msg.content}
+                </div>
               </div>
             ))}
+
+            {loading && (
+              <div style={{ display: 'flex', gap: '4px', padding: '8px 14px' }}>
+                {[0,1,2].map(i => (
+                  <div key={i} style={{
+                    width: '8px', height: '8px', borderRadius: '50%',
+                    background: '#00ff99',
+                    animation: `bounce 1s ${i * 0.2}s infinite`
+                  }} />
+                ))}
+              </div>
+            )}
+            <div ref={messagesEndRef} />
           </div>
-        )}
 
-        <div className="chat-input-area">
-          <form 
-            className="chat-input-wrapper"
-            onSubmit={(e) => { e.preventDefault(); handleSend(); }}
-          >
-            <input 
-              type="text" 
-              className="chat-input"
-              placeholder={t('chatPlaceholder')}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              disabled={isTyping}
+          {/* Suggestions */}
+          {messages.length <= 1 && (
+            <div style={{ padding: '0 16px 8px', display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+              {suggestions.map((s, i) => (
+                <button key={i} onClick={() => sendMessage(s)} style={{
+                  background: 'transparent',
+                  border: '1px solid rgba(0,255,153,0.3)',
+                  color: '#00ff99', padding: '6px 12px',
+                  borderRadius: '20px', cursor: 'pointer',
+                  fontSize: '12px', whiteSpace: 'nowrap'
+                }}>
+                  {s}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* Input */}
+          <div style={{
+            padding: '12px 16px',
+            borderTop: '1px solid rgba(0,255,153,0.1)',
+            display: 'flex', gap: '8px', alignItems: 'center'
+          }}>
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder={language === 'ta' ? 'உங்கள் கேள்வியை தட்டச்சு செய்யுங்கள்...' : 'Type your question...'}
+              style={{
+                flex: 1, padding: '10px 14px',
+                background: 'rgba(255,255,255,0.06)',
+                border: '1px solid rgba(0,255,153,0.2)',
+                borderRadius: '20px', color: '#fff',
+                fontSize: '14px', outline: 'none'
+              }}
             />
-            <button 
-              type="submit" 
-              className="chat-send-btn"
-              disabled={!inputValue.trim() || isTyping}
+            <button
+              onClick={() => sendMessage()}
+              disabled={loading || !input.trim()}
+              style={{
+                width: '40px', height: '40px', borderRadius: '50%',
+                background: input.trim() ? '#00ff99' : 'rgba(0,255,153,0.2)',
+                border: 'none', cursor: input.trim() ? 'pointer' : 'not-allowed',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '16px', transition: 'all 0.2s ease'
+              }}
             >
-              <Send size={16} style={{ marginLeft: '2px' }} />
+              ➤
             </button>
-          </form>
+          </div>
         </div>
+      )}
 
-      </div>
+      <style>{`
+        @keyframes slideUp {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes bounce {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-6px); }
+        }
+      `}</style>
     </>
   );
-}
+};
 
 export default Chatbot;
