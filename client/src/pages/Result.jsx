@@ -4,11 +4,13 @@ import jsPDF from 'jspdf';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 
 const Result = () => {
   const navigate = useNavigate();
   const { session } = useAuth();
   const { t } = useLanguage();
+  const { theme } = useTheme();
   const [plant, setPlant] = useState(null);
   const [scannedImage, setScannedImage] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -71,12 +73,12 @@ const Result = () => {
   if (loading) {
     return (
       <div style={{
-        background: '#0a0a0a',
+        background: 'var(--bg)',
         minHeight: '100vh',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#00ff99',
+        color: 'var(--accent)',
         fontSize: '20px'
       }}>
         Loading results...
@@ -87,17 +89,17 @@ const Result = () => {
   if (!plant) {
     return (
       <div style={{
-        background: '#0a0a0a',
+        background: 'var(--bg)',
         minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#fff'
+        color: 'var(--text-primary)'
       }}>
         <p>No plant data found</p>
         <button onClick={() => navigate('/scan')}
-          style={{ color: '#00ff99', marginTop: '16px', border: '1px solid #00ff99', background: 'transparent', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer' }}>
+          style={{ color: 'var(--accent)', marginTop: '16px', border: '1px solid var(--accent)', background: 'transparent', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer' }}>
           Go back to scan
         </button>
       </div>
@@ -225,10 +227,10 @@ const Result = () => {
 
   return (
     <div className="result-container" style={{
-      background: '#0a0a0a',
+      background: 'transparent',
       minHeight: '100vh',
       padding: '24px',
-      color: '#fff',
+      color: 'var(--text-primary)',
       position: 'relative',
       zIndex: 1
     }}>
@@ -239,8 +241,8 @@ const Result = () => {
           onClick={() => navigate('/dashboard')}
           style={{
             background: 'transparent',
-            border: '1px solid rgba(0,255,153,0.3)',
-            color: '#00ff99',
+            border: '1px solid var(--accent-glow)',
+            color: 'var(--accent)',
             padding: '8px 20px',
             borderRadius: '20px',
             cursor: 'pointer'
@@ -253,9 +255,9 @@ const Result = () => {
           onClick={saveToHistory}
           disabled={isSaved || saveLoading}
           style={{
-            background: isSaved ? 'rgba(0,255,153,0.2)' : 'rgba(0,255,153,0.1)',
-            border: `1px solid ${isSaved ? '#00ff99' : 'rgba(0,255,153,0.4)'}`,
-            color: isSaved ? '#00ff99' : '#fff',
+            background: isSaved ? 'var(--accent-glow)' : 'var(--glass)',
+            border: `1px solid ${isSaved ? 'var(--accent)' : 'var(--glass-border)'}`,
+            color: isSaved ? 'var(--accent)' : 'var(--text-primary)',
             padding: '8px 20px',
             borderRadius: '20px',
             cursor: isSaved ? 'default' : 'pointer',
@@ -265,14 +267,14 @@ const Result = () => {
             transition: 'all 0.3s ease'
           }}
         >
-          {saveLoading ? '⏳ Saving...' : isSaved ? '✅ Saved to History' : '⭐ Save to History'}
+          {saveLoading ? '⏳ Saving...' : isSaved ? '✅ Saved' : '⭐ Save'}
         </button>
       </div>
 
       {/* HERO SECTION - Image + Plant Name */}
       <div style={{
-        background: 'linear-gradient(135deg, rgba(0,255,153,0.08), rgba(0,255,153,0.02))',
-        border: '1px solid rgba(0,255,153,0.2)',
+        background: 'var(--glass)',
+        border: '1px solid var(--glass-border)',
         borderRadius: '24px',
         padding: '32px',
         marginBottom: '24px',
@@ -280,7 +282,8 @@ const Result = () => {
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        gap: '24px'
+        gap: '24px',
+        boxShadow: theme === 'light' ? '0 10px 40px rgba(0,0,0,0.05)' : '0 0 30px rgba(0,255,153,0.1)'
       }}>
 
         {/* SCANNED IMAGE */}
@@ -289,8 +292,8 @@ const Result = () => {
             width: '280px', height: '280px',
             borderRadius: '20px',
             overflow: 'hidden',
-            border: '3px solid rgba(0,255,153,0.4)',
-            boxShadow: '0 0 40px rgba(0,255,153,0.2)',
+            border: '3px solid var(--accent-glow)',
+            boxShadow: theme === 'light' ? '0 10px 30px rgba(0,0,0,0.1)' : '0 0 30px rgba(0,255,153,0.2)',
             position: 'relative'
           }}>
             <img
@@ -304,14 +307,15 @@ const Result = () => {
             {/* AI Scan overlay badge */}
             <div style={{
               position: 'absolute', bottom: '12px', left: '12px',
-              background: 'rgba(0,0,0,0.7)',
+              background: 'var(--bg)',
               backdropFilter: 'blur(8px)',
-              border: '1px solid rgba(0,255,153,0.4)',
+              border: '1px solid var(--accent-glow)',
               borderRadius: '20px',
               padding: '4px 12px',
-              color: '#00ff99',
+              color: 'var(--accent)',
               fontSize: '12px',
-              fontWeight: '600'
+              fontWeight: '600',
+              opacity: 0.9
             }}>
               🤖 {t('aiScanned')}
             </div>
@@ -320,11 +324,12 @@ const Result = () => {
           <div style={{
             width: '280px', height: '280px',
             borderRadius: '20px',
-            background: 'rgba(0,255,153,0.05)',
-            border: '2px dashed rgba(0,255,153,0.3)',
+            background: 'var(--accent-glow)',
+            border: '2px dashed var(--accent)',
             display: 'flex', alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '80px'
+            fontSize: '80px',
+            opacity: 0.5
           }}>
             🌿
           </div>
@@ -333,13 +338,13 @@ const Result = () => {
         {/* Plant Name + Scientific Name */}
         <div style={{ textAlign: 'center' }}>
           <h1 style={{
-            color: '#00ff99', fontSize: '36px',
+            color: 'var(--accent)', fontSize: '36px',
             fontWeight: '800', margin: '0 0 8px'
           }}>
             {getName()}
           </h1>
           <p style={{
-            color: '#888', fontStyle: 'italic',
+            color: 'var(--text-secondary)', fontStyle: 'italic',
             fontSize: '18px', margin: '0 0 12px'
           }}>
             {getScientific()}
@@ -347,11 +352,11 @@ const Result = () => {
           {getConfidence() && (
             <div style={{
               display: 'inline-block',
-              background: 'rgba(0,255,153,0.1)',
-              border: '1px solid rgba(0,255,153,0.3)',
+              background: 'var(--accent-glow)',
+              border: '1px solid var(--accent)',
               borderRadius: '20px',
               padding: '6px 16px',
-              color: '#00ff99',
+              color: 'var(--accent)',
               fontSize: '14px',
               fontWeight: '600'
             }}>
@@ -369,21 +374,22 @@ const Result = () => {
       }}>
 
         <div className="result-card" style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(0,255,153,0.15)',
+          background: 'var(--glass)',
+          border: '1px solid var(--glass-border)',
           borderRadius: '16px',
           padding: '24px',
-          backdropFilter: 'blur(16px)'
+          backdropFilter: 'blur(16px)',
+          boxShadow: theme === 'light' ? '0 5px 15px rgba(0,0,0,0.02)' : 'none'
         }}>
-          <h3 style={{ color: '#00ff99', marginBottom: '16px' }}>
+          <h3 style={{ color: 'var(--accent)', marginBottom: '16px' }}>
             🌱 {t('herbalUses')}
           </h3>
           {getHerbal().length > 0 ? (
             getHerbal().map((use, i) => (
               <p key={i} style={{
-                color: '#ccc',
+                color: 'var(--text-main)',
                 padding: '8px 0',
-                borderBottom: '1px solid rgba(255,255,255,0.05)'
+                borderBottom: '1px solid var(--glass-border)'
               }}>✓ {use}</p>
             ))
           ) : (
@@ -392,21 +398,22 @@ const Result = () => {
         </div>
 
         <div className="result-card" style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(0,255,153,0.15)',
+          background: 'var(--glass)',
+          border: '1px solid var(--glass-border)',
           borderRadius: '16px',
           padding: '24px',
-          backdropFilter: 'blur(16px)'
+          backdropFilter: 'blur(16px)',
+          boxShadow: theme === 'light' ? '0 5px 15px rgba(0,0,0,0.02)' : 'none'
         }}>
-          <h3 style={{ color: '#00ff99', marginBottom: '16px' }}>
+          <h3 style={{ color: 'var(--accent)', marginBottom: '16px' }}>
             💊 {t('medicalUses')}
           </h3>
           {getMedical().length > 0 ? (
             getMedical().map((use, i) => (
               <p key={i} style={{
-                color: '#ccc',
+                color: 'var(--text-main)',
                 padding: '8px 0',
-                borderBottom: '1px solid rgba(255,255,255,0.05)'
+                borderBottom: '1px solid var(--glass-border)'
               }}>✓ {use}</p>
             ))
           ) : (
@@ -415,21 +422,22 @@ const Result = () => {
         </div>
 
         <div className="result-card" style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(0,255,153,0.15)',
+          background: 'var(--glass)',
+          border: '1px solid var(--glass-border)',
           borderRadius: '16px',
           padding: '24px',
-          backdropFilter: 'blur(16px)'
+          backdropFilter: 'blur(16px)',
+          boxShadow: theme === 'light' ? '0 5px 15px rgba(0,0,0,0.02)' : 'none'
         }}>
-          <h3 style={{ color: '#00ff99', marginBottom: '16px' }}>
+          <h3 style={{ color: 'var(--accent)', marginBottom: '16px' }}>
             ⚕️ {t('diseasesTreated')}
           </h3>
           {getDiseases().length > 0 ? (
             getDiseases().map((disease, i) => (
               <p key={i} style={{
-                color: '#ccc',
+                color: 'var(--text-main)',
                 padding: '8px 0',
-                borderBottom: '1px solid rgba(255,255,255,0.05)'
+                borderBottom: '1px solid var(--glass-border)'
               }}>• {disease}</p>
             ))
           ) : (
@@ -438,26 +446,28 @@ const Result = () => {
         </div>
 
         <div className="result-card" style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(0,255,153,0.15)',
+          background: 'var(--glass)',
+          border: '1px solid var(--glass-border)',
           borderRadius: '16px',
           padding: '24px',
-          backdropFilter: 'blur(16px)'
+          backdropFilter: 'blur(16px)',
+          boxShadow: theme === 'light' ? '0 5px 15px rgba(0,0,0,0.02)' : 'none'
         }}>
-          <h3 style={{ color: '#00ff99', marginBottom: '16px' }}>
+          <h3 style={{ color: 'var(--accent)', marginBottom: '16px' }}>
             🧪 {t('medicineForms')}
           </h3>
           {getForms().length > 0 ? (
             getForms().map((form, i) => (
               <span key={i} style={{
                 display: 'inline-block',
-                background: 'rgba(0,255,153,0.1)',
-                border: '1px solid rgba(0,255,153,0.3)',
-                color: '#00ff99',
+                background: 'var(--accent-glow)',
+                border: '1px solid var(--accent)',
+                color: 'var(--accent)',
                 padding: '4px 12px',
                 borderRadius: '20px',
                 margin: '4px',
-                fontSize: '13px'
+                fontSize: '13px',
+                fontWeight: '600'
               }}>{form}</span>
             ))
           ) : (
@@ -466,24 +476,26 @@ const Result = () => {
         </div>
 
         <div className="result-card" style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(0,255,153,0.15)',
+          background: 'var(--glass-bg)',
+          border: '1px solid var(--glass-border)',
           borderRadius: '16px',
           padding: '24px',
-          backdropFilter: 'blur(16px)'
+          backdropFilter: 'blur(16px)',
+          boxShadow: 'var(--shadow-neon)'
         }}>
-          <h3 style={{ color: '#00ff99', marginBottom: '16px' }}>
+          <h3 style={{ color: 'var(--neon-green)', marginBottom: '16px' }}>
             📍 {t('habitat')}
           </h3>
-          <p style={{ color: '#ccc', lineHeight: '1.6' }}>{getHabitat()}</p>
+          <p style={{ color: 'var(--text-primary)', lineHeight: '1.6' }}>{getHabitat()}</p>
         </div>
 
         <div className="result-card" style={{
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,100,100,0.15)',
+          background: 'var(--glass)',
+          border: '1px solid rgba(255,100,100,0.3)',
           borderRadius: '16px',
           padding: '24px',
-          backdropFilter: 'blur(16px)'
+          backdropFilter: 'blur(16px)',
+          boxShadow: theme === 'light' ? '0 10px 30px rgba(255,100,100,0.05)' : 'none'
         }}>
           <h3 style={{ color: '#ff6464', marginBottom: '16px' }}>
             ⚠️ {t('sideEffects')}
@@ -491,9 +503,9 @@ const Result = () => {
           {getSideEffects().length > 0 ? (
             getSideEffects().map((effect, i) => (
               <p key={i} style={{
-                color: '#ccc',
+                color: 'var(--text-main)',
                 padding: '8px 0',
-                borderBottom: '1px solid rgba(255,255,255,0.05)'
+                borderBottom: '1px solid var(--glass-border)'
               }}>• {effect}</p>
             ))
           ) : (
@@ -508,19 +520,20 @@ const Result = () => {
           position: 'fixed',
           bottom: '32px',
           right: '32px',
-          background: '#00ff99',
-          color: '#0a0a0a',
+          background: 'var(--accent)',
+          color: theme === 'light' ? '#fff' : '#0a0a0a',
           border: 'none',
           borderRadius: '50px',
           padding: '14px 28px',
           fontWeight: '700',
           fontSize: '14px',
           cursor: 'pointer',
-          boxShadow: '0 0 30px rgba(0,255,153,0.4)',
+          boxShadow: `0 10px 30px var(--accent-glow)`,
           zIndex: 100,
           display: 'flex',
           alignItems: 'center',
-          gap: '8px'
+          gap: '8px',
+          transition: 'all 0.3s ease'
         }}
       >
         📄 {t('downloadPDF')}

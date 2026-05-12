@@ -46,7 +46,7 @@
     justify-content: space-between;
     align-items: center;
     padding: 1.25rem 2rem;
-    background: rgba(10, 10, 10, 0.4);
+    background: var(--glass);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
     border-bottom: 1px solid var(--glass-border);
@@ -144,10 +144,10 @@
   .search-bar {
     width: 100%;
     padding: 14px 24px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(0, 255, 153, 0.3);
+    background: var(--glass);
+    border: 1px solid var(--glass-border);
     border-radius: 50px;
-    color: #fff;
+    color: var(--text-primary);
     font-size: 15px;
     outline: none;
     backdrop-filter: blur(10px);

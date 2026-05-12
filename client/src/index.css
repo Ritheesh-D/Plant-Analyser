@@ -35,6 +35,28 @@
   --accent:            var(--neon-green);
   --accent-glow:       var(--neon-green-dim);
   --transition:        0.3s ease;
+  --body-bg:           linear-gradient(135deg, #000000 0%, #0a1a12 30%, #0f2027 60%, #0a0f1a 100%);
+}
+
+[data-theme='light'] {
+  --bg-dark:           #ffffff;
+  --bg-deep-blue:      #f0fdf4;
+  --bg-primary:        #f8fafc;
+  --bg-secondary:      #f1f5f9;
+  --bg-card:           #ffffff;
+  --neon-green:        #059669;
+  --neon-green-dim:    rgba(5, 150, 105, 0.4);
+  --neon-green-glow:   rgba(5, 150, 105, 0.1);
+  --glass-glow:        rgba(5, 150, 105, 0.08);
+  --accent-blue:       #2563eb;
+  --accent-pink:       #db2777;
+  --glass-bg:          rgba(255, 255, 255, 0.8);
+  --glass-border:      rgba(0, 0, 0, 0.1);
+  --text-primary:      #0f172a;
+  --text-main:         #1e293b;
+  --text-muted:        #64748b;
+  --body-bg:           linear-gradient(135deg, #f8fafc 0%, #f0fdf4 50%, #ffffff 100%);
+  --shadow-neon:       0 10px 30px rgba(5, 150, 105, 0.1);
 }
 
 /* ── Reset & Base ───────────────────────────────────────────── */
@@ -44,7 +66,7 @@ html { scroll-behavior: smooth; }
 body {
   font-family: var(--font-ui);
   color: var(--text-main);
-  background: linear-gradient(135deg, #000000 0%, #0a1a12 30%, #0f2027 60%, #0a0f1a 100%);
+  background: var(--body-bg);
   background-size: 400% 400%;
   animation: gradientShift 12s ease infinite;
   min-height: 100vh;

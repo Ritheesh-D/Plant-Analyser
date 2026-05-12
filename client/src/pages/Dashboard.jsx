@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Search, Leaf, HeartPulse, Activity, MapPin, Beaker, Globe, User, LogOut, ScanLine } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useTheme } from '../context/ThemeContext';
 import ParticlesBackground from '../components/ParticlesBackground';
 import '../styles/Dashboard.css';
 
@@ -34,6 +35,7 @@ function Dashboard() {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { language, toggleLanguage, t } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
 
   const tamilNames = {
     'Tulsi': 'துளசி', 'Neem': 'வேம்பு', 'Aloe Vera': 'கற்றாழை',
@@ -202,6 +204,9 @@ function Dashboard() {
                 </button>
                 <button className="dropdown-item" onClick={handleSwitchAccount}>
                   🔄 {t('switchAccount')}
+                </button>
+                <button className="dropdown-item" onClick={toggleTheme}>
+                  {theme === 'light' ? '🌙 Dark Mode' : '☀️ Light Mode'}
                 </button>
                 <hr className="dropdown-divider" />
                 <button className="dropdown-item logout-item" onClick={handleLogout}>

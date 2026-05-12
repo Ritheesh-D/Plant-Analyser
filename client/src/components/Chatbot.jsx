@@ -78,9 +78,9 @@ const Chatbot = () => {
           style={{
             position: 'fixed', bottom: '32px', right: '32px',
             width: '56px', height: '56px', borderRadius: '50%',
-            background: '#00ff99', border: 'none', cursor: 'pointer',
+            background: 'var(--neon-green)', border: 'none', cursor: 'pointer',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            boxShadow: '0 0 20px rgba(0,255,153,0.5)', zIndex: 999,
+            boxShadow: 'var(--shadow-neon)', zIndex: 999,
             fontSize: '24px'
           }}
         >
@@ -93,13 +93,13 @@ const Chatbot = () => {
         <div style={{
           position: 'fixed', bottom: '20px', right: '20px',
           width: '380px', height: '520px',
-          background: 'rgba(10,10,10,0.95)',
+          background: 'var(--bg-card)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(0,255,153,0.2)',
+          border: '1px solid var(--neon-green-dim)',
           borderRadius: '20px',
           display: 'flex', flexDirection: 'column',
           zIndex: 999,
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+          boxShadow: 'var(--shadow-neon)',
           animation: 'slideUp 0.3s ease'
         }}>
 
@@ -107,22 +107,22 @@ const Chatbot = () => {
           <div style={{
             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
             padding: '16px 20px',
-            borderBottom: '1px solid rgba(0,255,153,0.1)'
+            borderBottom: '1px solid var(--glass-border)'
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '20px' }}>🌿</span>
-              <span style={{ color: '#00ff99', fontWeight: '700', fontSize: '16px' }}>
+              <span style={{ color: 'var(--neon-green)', fontWeight: '700', fontSize: '16px' }}>
                 AI Botanist
               </span>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={clearChat} style={{
                 background: 'transparent', border: 'none',
-                color: '#666', cursor: 'pointer', fontSize: '16px', padding: '4px'
+                color: 'var(--text-muted)', cursor: 'pointer', fontSize: '16px', padding: '4px'
               }}>🗑️</button>
               <button onClick={() => setIsOpen(false)} style={{
                 background: 'transparent', border: 'none',
-                color: '#666', cursor: 'pointer', fontSize: '16px', padding: '4px'
+                color: 'var(--text-muted)', cursor: 'pointer', fontSize: '16px', padding: '4px'
               }}>✕</button>
             </div>
           </div>
@@ -142,12 +142,12 @@ const Chatbot = () => {
                   padding: '10px 14px',
                   borderRadius: msg.role === 'user' ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
                   background: msg.role === 'user'
-                    ? 'rgba(0,255,153,0.15)'
-                    : 'rgba(255,255,255,0.06)',
+                    ? 'var(--neon-green-glow)'
+                    : 'var(--bg-secondary)',
                   border: msg.role === 'user'
-                    ? '1px solid rgba(0,255,153,0.3)'
-                    : '1px solid rgba(255,255,255,0.08)',
-                  color: '#fff',
+                    ? '1px solid var(--neon-green-dim)'
+                    : '1px solid var(--glass-border)',
+                  color: 'var(--text-primary)',
                   fontSize: '14px',
                   lineHeight: '1.5',
                   whiteSpace: 'pre-wrap'
@@ -162,7 +162,7 @@ const Chatbot = () => {
                 {[0,1,2].map(i => (
                   <div key={i} style={{
                     width: '8px', height: '8px', borderRadius: '50%',
-                    background: '#00ff99',
+                    background: 'var(--neon-green)',
                     animation: `bounce 1s ${i * 0.2}s infinite`
                   }} />
                 ))}
@@ -177,8 +177,8 @@ const Chatbot = () => {
               {suggestions.map((s, i) => (
                 <button key={i} onClick={() => sendMessage(s)} style={{
                   background: 'transparent',
-                  border: '1px solid rgba(0,255,153,0.3)',
-                  color: '#00ff99', padding: '6px 12px',
+                  border: '1px solid var(--neon-green-dim)',
+                  color: 'var(--neon-green)', padding: '6px 12px',
                   borderRadius: '20px', cursor: 'pointer',
                   fontSize: '12px', whiteSpace: 'nowrap'
                 }}>
@@ -202,9 +202,9 @@ const Chatbot = () => {
               placeholder={language === 'ta' ? 'உங்கள் கேள்வியை தட்டச்சு செய்யுங்கள்...' : 'Type your question...'}
               style={{
                 flex: 1, padding: '10px 14px',
-                background: 'rgba(255,255,255,0.06)',
-                border: '1px solid rgba(0,255,153,0.2)',
-                borderRadius: '20px', color: '#fff',
+                background: 'var(--bg-secondary)',
+                border: '1px solid var(--neon-green-dim)',
+                borderRadius: '20px', color: 'var(--text-primary)',
                 fontSize: '14px', outline: 'none'
               }}
             />
@@ -213,10 +213,11 @@ const Chatbot = () => {
               disabled={loading || !input.trim()}
               style={{
                 width: '40px', height: '40px', borderRadius: '50%',
-                background: input.trim() ? '#00ff99' : 'rgba(0,255,153,0.2)',
+                background: input.trim() ? 'var(--neon-green)' : 'var(--neon-green-glow)',
                 border: 'none', cursor: input.trim() ? 'pointer' : 'not-allowed',
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: '16px', transition: 'all 0.2s ease'
+                fontSize: '16px', transition: 'all 0.2s ease',
+                color: input.trim() ? 'var(--bg-dark)' : 'var(--text-muted)'
               }}
             >
               ➤

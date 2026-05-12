@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
-import { supabase } from '../services/supabase';
 import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useTheme } from '../context/ThemeContext';
@@ -42,10 +41,10 @@ const ManageAccount = () => {
       return () => clearTimeout(timer);
     }
     
-    // Set profile from Supabase user data
+    // Set profile from user data
     setProfile({
-      username: authUser.user_metadata?.username || authUser.email?.split('@')[0] || 'User',
-      email: authUser.email || '',
+      username: authUser?.username || 'User',
+      email: authUser?.email || '',
     });
 
     fetchHistory();
@@ -79,14 +78,13 @@ const ManageAccount = () => {
   const handleSaveProfile = async () => {
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        data: { username: profile.username }
-      });
+      const { data } = await axios.put(`${API_URL}/user/profile`, {
+        username: profile.username
+      }, getConfig());
 
-      if (error) throw error;
       setMessage({ text: 'Profile updated successfully!', type: 'success' });
     } catch (error) {
-      setMessage({ text: 'Failed to update profile: ' + error.message, type: 'error' });
+      setMessage({ text: 'Failed to update profile: ' + (error.response?.data?.message || error.message), type: 'error' });
     }
     setLoading(false);
     setTimeout(() => setMessage({ text: '', type: '' }), 3000);
@@ -104,14 +102,14 @@ const ManageAccount = () => {
     }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({ 
-        password: passwords.newPass 
-      });
-      if (error) throw error;
+      await axios.put(`${API_URL}/user/profile/password`, { 
+        newPassword: passwords.newPass 
+      }, getConfig());
+
       setMessage({ text: 'Password updated successfully!', type: 'success' });
       setPasswords({ current: '', newPass: '', confirm: '' });
     } catch (error) {
-      setMessage({ text: 'Password update failed: ' + error.message, type: 'error' });
+      setMessage({ text: 'Password update failed: ' + (error.response?.data?.message || error.message), type: 'error' });
     }
     setLoading(false);
     setTimeout(() => setMessage({ text: '', type: '' }), 3000);
@@ -123,14 +121,14 @@ const ManageAccount = () => {
       return;
     }
     try {
-      // 1. Delete MongoDB history
-      await axios.delete(`${API_URL}/user/history-clear-all`, getConfig());
-      // 2. We can't easily delete Supabase auth users from client, 
-      // but we can sign out and clear data.
+      // Delete from MongoDB (User + History)
+      await axios.delete(`${API_URL}/user/profile`, getConfig());
+      
+      // Sign out locally
       await logout();
       navigate('/signup');
     } catch (error) {
-      setMessage({ text: 'Failed to clear data: ' + error.message, type: 'error' });
+      setMessage({ text: 'Failed to delete account: ' + (error.response?.data?.message || error.message), type: 'error' });
     }
   };
 

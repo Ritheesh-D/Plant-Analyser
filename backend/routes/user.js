@@ -129,6 +129,74 @@ router.delete('/history/:id', requireAuth, async (req, res) => {
   }
 });
 
+// @desc    Update user profile (username)
+// @route   PUT /api/user/profile
+router.put('/profile', requireAuth, async (req, res) => {
+  const { username } = req.body;
+
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+      user.username = username || user.username;
+      const updatedUser = await user.save();
+
+      res.json({
+        _id: updatedUser._id,
+        username: updatedUser.username,
+        email: updatedUser.email,
+        token: generateToken(updatedUser._id),
+      });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @desc    Update user password
+// @route   PUT /api/user/profile/password
+router.put('/profile/password', requireAuth, async (req, res) => {
+  const { newPassword } = req.body;
+
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+      user.password = newPassword;
+      await user.save();
+      res.json({ message: 'Password updated successfully' });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// @desc    Delete user account
+// @route   DELETE /api/user/profile
+router.delete('/profile', requireAuth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+
+    if (user) {
+      // 1. Delete all scan history for this user
+      await ScanHistory.deleteMany({ user_id: req.user._id });
+      
+      // 2. Delete the user
+      await user.deleteOne();
+      
+      res.json({ message: 'Account and history deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // @desc    Delete all history
 router.delete('/history-clear-all', requireAuth, async (req, res) => {
   try {

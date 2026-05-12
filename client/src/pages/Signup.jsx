@@ -94,15 +94,13 @@ function Signup() {
     try {
       const data = await signup(formData.username, formData.email, formData.password);
       
-      if (data?.session) {
+      if (data?.user) {
         setSuccess(true);
         setTimeout(() => {
           navigate('/dashboard');
         }, 1500);
       } else {
-        // Supabase often requires email confirmation by default
-        setSuccess(true);
-        setError("Account created! Please check your email to confirm your account before logging in.");
+        setError("Signup failed. Unexpected response from server.");
       }
     } catch (err) {
       setError(err.message || 'Signup failed. Please try again.');
