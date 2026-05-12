@@ -117,6 +117,8 @@ function Scan() {
     }
   };
 
+  const [isError, setIsError] = useState(false);
+
   const handleScan = async () => {
     if (!selectedFile) {
       setError('Please select or capture an image first.');
@@ -125,6 +127,7 @@ function Scan() {
 
     setIsScanning(true);
     setError('');
+    setIsError(false);
 
     try {
       // Save image for result page
@@ -135,23 +138,24 @@ function Scan() {
       formData.append('image', selectedFile);
       formData.append('language', language);
 
-      console.log('Sending language:', language);
-
       const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
 
-      // ✅ No Authorization header — removed!
-      const response = await fetch(`${API_URL}/api/scan`, {
+      const response = await fetch(`${API_URL}/scan`, {
         method: 'POST',
         body: formData
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to analyze image. Please try again.');
-      }
-
       const data = await response.json();
       console.log('=== SCAN RESPONSE ===', data);
-      console.log('=== PLANT NAME ===', data?.commonName);
+
+      if (data.error) {
+        setError(data.error);
+        setIsError(true);
+        setIsScanning(false);
+        // Trigger shake effect by toggling state
+        setTimeout(() => setIsError(false), 500);
+        return;
+      }
 
       // Data directly from backend
       const plantData = data.plant || data.result || data.data || data;
@@ -202,7 +206,7 @@ function Scan() {
         </div>
       )}
 
-      <div className="scan-box">
+      <div className={`scan-box ${isError ? 'shake-error' : ''}`}>
         {isScanning && (
           <div className="scanning-overlay">
             <div className="radar"></div>

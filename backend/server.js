@@ -3,10 +3,15 @@ dotenv.config();
 
 import express from 'express';
 import cors from 'cors';
+import connectDB from './config/db.js';
 
 // Route files
 import scanRoutes from './routes/scan.js';
 import chatRoutes from './routes/chat.js';
+import userRoutes from './routes/user.js';
+
+// Connect to Database
+connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -25,6 +30,7 @@ app.use(express.urlencoded({ extended: true }));
 // Setup Mounts
 app.use('/api/scan', scanRoutes);
 app.use('/api/chat', chatRoutes);
+app.use('/api/user', userRoutes);
 
 // Fallback Route
 app.get('/', (req, res) => {

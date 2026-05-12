@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { supabase } from '../services/supabase';
+import axios from 'axios';
+import { API_URL } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -9,36 +10,76 @@ export const useAuth = () => {
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Get active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen to auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    // Check if user is logged in on load
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+    setLoading(false);
   }, []);
 
+  const login = async (email, password) => {
+    try {
+      const { data } = await axios.post(`${API_URL}/user/login`, {
+        email,
+        password
+      });
+      
+      setUser(data);
+      localStorage.setItem('user', JSON.stringify(data));
+      return data;
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Login failed');
+    }
+  };
+
+  const signup = async (username, email, password) => {
+    try {
+      const { data } = await axios.post(`${API_URL}/user/signup`, {
+        username,
+        email,
+        password
+      });
+
+      setUser(data);
+      localStorage.setItem('user', JSON.stringify(data));
+      return { session: { access_token: data.token }, user: data };
+    } catch (error) {
+      throw new Error(error.response?.data?.message || 'Signup failed');
+    }
+  };
+
+  const loginWithGoogle = async () => {
+    // Social login is currently disabled after moving away from Supabase
+    alert('Google login is currently disabled. Please use Email/Password.');
+  };
+
   const logout = async () => {
-    await supabase.auth.signOut();
+    setUser(null);
+    localStorage.removeItem('user');
+  };
+
+  // Helper to get auth config with token
+  const getConfig = () => {
+    return {
+      headers: {
+        Authorization: `Bearer ${user?.token}`
+      }
+    };
   };
 
   const value = {
     user,
-    session,
+    session: user ? { access_token: user.token } : null,
     loading,
-    logout
+    login,
+    signup,
+    loginWithGoogle,
+    logout,
+    getConfig
   };
 
   return (

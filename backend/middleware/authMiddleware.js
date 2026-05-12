@@ -1,25 +1,35 @@
-import { supabaseAdmin } from '../config/supabase.js';
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
 export const requireAuth = async (req, res, next) => {
-  try {
-    const authHeader = req.headers.authorization;
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Unauthorized: No token provided' });
+  let token;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith('Bearer')
+  ) {
+    try {
+      // Get token from header
+      token = req.headers.authorization.split(' ')[1];
+
+      // Verify token
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+      // Get user from the token
+      req.user = await User.findById(decoded.id).select('-password');
+
+      if (!req.user) {
+        return res.status(401).json({ message: 'Not authorized, user not found' });
+      }
+
+      next();
+    } catch (error) {
+      console.error('Auth middleware error:', error);
+      res.status(401).json({ message: 'Not authorized, token failed' });
     }
+  }
 
-    const token = authHeader.split(' ')[1];
-    
-    // Verify using supabase admin
-    const { data: { user }, error } = await supabaseAdmin.auth.getUser(token);
-
-    if (error || !user) {
-      return res.status(401).json({ error: 'Unauthorized: Invalid token' });
-    }
-
-    req.user = user;
-    next();
-  } catch (err) {
-    console.error('Auth middleware error:', err);
-    res.status(500).json({ error: 'Internal server error during authentication' });
+  if (!token) {
+    res.status(401).json({ message: 'Not authorized, no token' });
   }
 };

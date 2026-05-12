@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import ReCAPTCHA from "react-google-recaptcha";
-import { supabase } from '../services/supabase';
+// Removed Supabase import
 import '../styles/Auth.css';
 
 function ForgotPassword() {
@@ -30,12 +30,14 @@ function ForgotPassword() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) throw error;
-      setSuccess(true);
+      // Password reset requires an email service (like Nodemailer) in the custom backend.
+      // This is a placeholder as the migration focused on core Auth and History.
+      setError("Password reset is currently unavailable. Please contact support.");
+      // const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      //   redirectTo: `${window.location.origin}/reset-password`,
+      // });
+      // if (error) throw error;
+      // setSuccess(true);
     } catch (err) {
       setError(err.message);
     } finally {

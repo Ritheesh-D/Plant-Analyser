@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Check, X } from 'lucide-react';
-import { supabase } from '../services/supabase';
+// Removed Supabase import
 import '../styles/Auth.css';
 
 function ResetPassword() {
@@ -70,18 +70,16 @@ function ResetPassword() {
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: formData.password
-      });
-
-      if (error) throw error;
-
-      setSuccess(true);
-      
-      setTimeout(() => {
-         navigate('/login', { state: { message: "Password updated successfully! Please login." } });
-      }, 2500);
-
+      // Password reset requires a valid session or token from the backend.
+      setError("Password reset link is invalid or expired. Please contact support.");
+      // const { error } = await supabase.auth.updateUser({
+      //   password: formData.password
+      // });
+      // if (error) throw error;
+      // setSuccess(true);
+      // setTimeout(() => {
+      //    navigate('/login', { state: { message: "Password updated successfully! Please login." } });
+      // }, 2500);
     } catch (err) {
       setError(err.message);
     } finally {

@@ -1,47 +1,51 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import jsPDF from 'jspdf';
-import { supabase } from '../services/supabase';
+import axios from 'axios';
+import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 
 const Result = () => {
   const navigate = useNavigate();
+  const { session } = useAuth();
   const { t } = useLanguage();
   const [plant, setPlant] = useState(null);
   const [scannedImage, setScannedImage] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const saveToHistory = async (plantData) => {
+  const [isSaved, setIsSaved] = useState(false);
+  const [saveLoading, setSaveLoading] = useState(false);
+
+  const saveToHistory = async () => {
+    if (isSaved || saveLoading) return;
+    
+    if (!session || !session.access_token) {
+      alert("Please log in to save history");
+      return;
+    }
+
+    setSaveLoading(true);
     try {
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      
-      if (userError || !user) {
-        console.log('No user logged in - skipping history save');
-        return;
-      }
+      const config = {
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+        },
+      };
 
-      console.log('Saving to history for user:', user.id);
-      console.log('Plant data:', plantData?.commonName);
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      await axios.post(`${API_URL}/user/history`, {
+        plant_name: getName(),
+        scientific_name: getScientific(),
+        result_json: plant,
+        image_url: scannedImage
+      }, config);
 
-      const { data, error } = await supabase
-        .from('scan_history')
-        .insert({
-          user_id: user.id,
-          plant_name: plantData?.commonName || plantData?.name || 'Unknown Plant',
-          scientific_name: plantData?.scientificName || '',
-          result_json: plantData,
-          scan_date: new Date().toISOString()
-        });
-
-      if (error) {
-        console.error('Supabase save error:', error);
-        return;
-      }
-
-      console.log('✅ History saved successfully!', data);
-
+      setIsSaved(true);
     } catch (err) {
-      console.error('saveToHistory error:', err.message);
+      console.error('History Save Error:', err.message);
+      alert("Failed to save to history");
+    } finally {
+      setSaveLoading(false);
     }
   };
 
@@ -53,12 +57,8 @@ const Result = () => {
       if (!raw) { navigate('/dashboard'); return; }
 
       const parsed = JSON.parse(raw);
-      console.log('Plant loaded:', parsed?.commonName);
       setPlant(parsed);
       setScannedImage(img);
-
-      // Save to history immediately
-      saveToHistory(parsed);
 
     } catch (err) {
       console.error(err);
@@ -127,61 +127,99 @@ const Result = () => {
   const handleDownloadPDF = () => {
     try {
       const doc = new jsPDF();
-      
-      doc.setFontSize(22);
-      doc.setTextColor(0, 255, 153);
-      doc.text(getName(), 20, 30);
-      
-      doc.setFontSize(14);
-      doc.setTextColor(100, 100, 100);
-      doc.text(getScientific(), 20, 42);
-      
-      doc.setFontSize(12);
-      doc.setTextColor(0, 0, 0);
-      
-      let y = 60;
-      
-      doc.setFontSize(14);
-      doc.text('Herbal Uses:', 20, y); y += 8;
-      doc.setFontSize(11);
-      getHerbal().forEach(use => { doc.text('• ' + use, 25, y); y += 7; });
-      
-      y += 5;
-      doc.setFontSize(14);
-      doc.text('Medical Uses:', 20, y); y += 8;
-      doc.setFontSize(11);
-      getMedical().forEach(use => { doc.text('• ' + use, 25, y); y += 7; });
-      
-      y += 5;
-      doc.setFontSize(14);
-      doc.text('Diseases Treated:', 20, y); y += 8;
-      doc.setFontSize(11);
-      getDiseases().forEach(d => { doc.text('• ' + d, 25, y); y += 7; });
-      
-      y += 5;
-      doc.setFontSize(14);
-      doc.text('Habitat:', 20, y); y += 8;
-      doc.setFontSize(11);
-      const habitatLines = doc.splitTextToSize(getHabitat(), 170);
-      doc.text(habitatLines, 25, y); y += (habitatLines.length * 7);
-      
-      doc.save(`${getName().replace(/[^a-zA-Z0-9]/g, '_')}_plant_details.pdf`);
+      const pageWidth = doc.internal.pageSize.getWidth();
 
-      // Save to downloads history
-      const downloads = JSON.parse(localStorage.getItem('plant_downloads') || '[]');
-      const newDownload = {
-        id: Date.now(),
-        commonName: getName(),
-        scientificName: getScientific(),
-        downloadDate: new Date().toISOString(),
-        plantData: plant
+      // Header Background
+      doc.setFillColor(10, 10, 10);
+      doc.rect(0, 0, pageWidth, 50, 'F');
+
+      // Title
+      doc.setFontSize(26);
+      doc.setTextColor(0, 255, 153);
+      doc.text('Botanist AI Report', 20, 25);
+
+      doc.setFontSize(10);
+      doc.setTextColor(150, 150, 150);
+      doc.text(`Generated on ${new Date().toLocaleDateString()}`, 20, 35);
+
+      let y = 65;
+
+      // Add Image if available
+      if (scannedImage) {
+        try {
+          doc.addImage(scannedImage, 'JPEG', 20, y, 60, 60);
+
+          // Plant Name next to image
+          doc.setFontSize(22);
+          doc.setTextColor(0, 0, 0);
+          doc.text(getName(), 90, y + 15);
+
+          doc.setFontSize(14);
+          doc.setTextColor(100, 100, 100);
+          doc.setFont('helvetica', 'italic');
+          doc.text(getScientific(), 90, y + 25);
+
+          doc.setFontSize(12);
+          doc.setTextColor(0, 180, 100);
+          doc.setFont('helvetica', 'bold');
+          doc.text(`Confidence Score: ${getConfidence() || 'N/A'}%`, 90, y + 40);
+
+          y += 75;
+        } catch (e) {
+          console.error("Image PDF error", e);
+          y += 10;
+        }
+      } else {
+        doc.setFontSize(22);
+        doc.text(getName(), 20, y);
+        y += 20;
+      }
+
+      const addSection = (title, items) => {
+        if (!items || items.length === 0) return;
+
+        // Check for page overflow
+        if (y > 250) {
+          doc.addPage();
+          y = 20;
+        }
+
+        doc.setFontSize(16);
+        doc.setTextColor(0, 150, 80);
+        doc.setFont('helvetica', 'bold');
+        doc.text(title, 20, y);
+        y += 10;
+
+        doc.setFontSize(11);
+        doc.setTextColor(50, 50, 50);
+        doc.setFont('helvetica', 'normal');
+
+        items.forEach(item => {
+          const lines = doc.splitTextToSize('• ' + item, pageWidth - 40);
+          doc.text(lines, 25, y);
+          y += (lines.length * 7);
+        });
+
+        y += 5;
       };
-      downloads.unshift(newDownload); // Add to beginning
-      localStorage.setItem('plant_downloads', JSON.stringify(downloads));
+
+      addSection('Herbal & Traditional Uses', getHerbal());
+      addSection('Medical Properties', getMedical());
+      addSection('Diseases & Conditions Treated', getDiseases());
+      addSection('Preferred Habitat', [getHabitat()]);
+      addSection('Medicine Forms', getForms());
+      addSection('Precautions & Side Effects', getSideEffects());
+
+      // Footer
+      doc.setFontSize(10);
+      doc.setTextColor(150, 150, 150);
+      doc.text('Powered by Botanist AI - Medicinal Plant Analyser', pageWidth / 2, 285, { align: 'center' });
+
+      doc.save(`${getName().replace(/\s+/g, '_')}_Report.pdf`);
 
     } catch (err) {
       console.error('PDF error:', err);
-      window.print();
+      alert("Error generating PDF. Please try again.");
     }
   };
 
@@ -194,22 +232,42 @@ const Result = () => {
       position: 'relative',
       zIndex: 1
     }}>
-      
-      {/* Back button */}
-      <button 
-        onClick={() => navigate('/dashboard')}
-        style={{
-          background: 'transparent',
-          border: '1px solid rgba(0,255,153,0.3)',
-          color: '#00ff99',
-          padding: '8px 20px',
-          borderRadius: '20px',
-          cursor: 'pointer',
-          marginBottom: '24px'
-        }}
-      >
-        {t('backDashboard')}
-      </button>
+
+      {/* Top Bar */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
+        <button
+          onClick={() => navigate('/dashboard')}
+          style={{
+            background: 'transparent',
+            border: '1px solid rgba(0,255,153,0.3)',
+            color: '#00ff99',
+            padding: '8px 20px',
+            borderRadius: '20px',
+            cursor: 'pointer'
+          }}
+        >
+          {t('backDashboard')}
+        </button>
+
+        <button
+          onClick={saveToHistory}
+          disabled={isSaved || saveLoading}
+          style={{
+            background: isSaved ? 'rgba(0,255,153,0.2)' : 'rgba(0,255,153,0.1)',
+            border: `1px solid ${isSaved ? '#00ff99' : 'rgba(0,255,153,0.4)'}`,
+            color: isSaved ? '#00ff99' : '#fff',
+            padding: '8px 20px',
+            borderRadius: '20px',
+            cursor: isSaved ? 'default' : 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.3s ease'
+          }}
+        >
+          {saveLoading ? '⏳ Saving...' : isSaved ? '✅ Saved to History' : '⭐ Save to History'}
+        </button>
+      </div>
 
       {/* HERO SECTION - Image + Plant Name */}
       <div style={{

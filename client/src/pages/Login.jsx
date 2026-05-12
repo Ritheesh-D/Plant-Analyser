@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { Eye, EyeOff } from 'lucide-react';
-import { supabase } from '../services/supabase';
+import { Eye, EyeOff, Github } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import '../styles/Auth.css';
 
 function Login() {
   const navigate = useNavigate();
+  const { login, loginWithGoogle } = useAuth();
   const { t } = useLanguage();
   
   const [formData, setFormData] = useState({
@@ -22,6 +23,14 @@ function Login() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      await loginWithGoogle();
+    } catch (err) {
+      setError(err.message || "Google Login failed");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -34,35 +43,10 @@ function Login() {
     setLoading(true);
 
     try {
-      let targetEmail = formData.identifier;
-      
-      // If the user typed a username instead of an email, fetch the mapped email from profiles
-      if (!targetEmail.includes('@')) {
-        const { data: profile, error: profileErr } = await supabase
-          .from('profiles')
-          .select('email')
-          .eq('username', formData.identifier.trim())
-          .single();
-          
-        if (profile?.email) {
-          targetEmail = profile.email;
-        } else {
-           throw new Error("Invalid credentials");
-        }
-      }
-
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: targetEmail,
-        password: formData.password
-      });
-
-      if (error) throw error; // Will automatically throw "Invalid login credentials"
-
+      await login(formData.identifier, formData.password);
       navigate('/dashboard');
-
     } catch (err) {
-      // Generalize the error exactly as explicitly requested
-      setError(t('invalidCredentials'));
+      setError(err.message || t('invalidCredentials'));
     } finally {
       setLoading(false);
     }
@@ -120,6 +104,18 @@ function Login() {
             {loading ? "Authenticating..." : t('loginBtn')}
           </button>
         </form>
+
+        <div className="social-login">
+          <div className="social-divider">
+            <span>OR</span>
+          </div>
+          <div className="social-btns">
+            <button className="social-btn google" onClick={handleGoogleLogin}>
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="20" />
+              Continue with Google
+            </button>
+          </div>
+        </div>
 
         <div className="auth-footer" style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
           <Link to="/forgot-password" className="auth-link" style={{ fontWeight: 'normal' }}>{t('forgotPassword')}</Link>

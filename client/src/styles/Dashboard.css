@@ -2,8 +2,8 @@
 
 .dashboard-container {
   min-height: 100vh;
-  background-color: #0a0a0a;
-  color: #fff;
+  background-color: var(--bg);
+  color: var(--text-primary);
   padding-bottom: 4rem;
   position: relative;
 }
@@ -37,7 +37,7 @@
 .scanner-ring {
   position: absolute;
   border-radius: 50%;
-  border: 1px solid rgba(0, 255, 153, 0.25);
+  border: 1px solid var(--accent-glow);
   aspect-ratio: 1;
   animation: ringExpand 3s ease-in-out infinite;
 }
@@ -50,11 +50,10 @@
   width: 120px;
   height: 120px;
   border-radius: 50%;
-  background: rgba(0, 255, 153, 0.05);
+  background: var(--glass);
   backdrop-filter: blur(16px);
-  border: 2px solid #00ff99;
-  box-shadow: 0 0 30px rgba(0, 255, 153, 0.4),
-              0 0 60px rgba(0, 255, 153, 0.15);
+  border: 2px solid var(--accent);
+  box-shadow: 0 0 30px var(--accent-glow);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -65,8 +64,8 @@
 }
 
 @keyframes scannerPulse {
-  0%, 100% { box-shadow: 0 0 20px rgba(0,255,153,0.4), 0 0 40px rgba(0,255,153,0.15); }
-  50% { box-shadow: 0 0 40px rgba(0,255,153,0.7), 0 0 80px rgba(0,255,153,0.3); }
+  0%, 100% { box-shadow: 0 0 20px var(--accent-glow); }
+  50% { box-shadow: 0 0 40px var(--accent-glow); }
 }
 
 /* Plant Grid & Search */
@@ -90,7 +89,7 @@
 .search-box {
   display: flex;
   align-items: center;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--glass);
   border: 1px solid var(--glass-border);
   border-radius: 25px;
   padding: 0.6rem 1.2rem;
@@ -101,14 +100,14 @@
 
 .search-box:focus-within {
   border-color: var(--accent);
-  box-shadow: 0 0 10px rgba(0, 255, 153, 0.15);
+  box-shadow: 0 0 10px var(--accent-glow);
 }
 
 .search-box input {
   background: transparent;
   border: none;
   outline: none;
-  color: white;
+  color: var(--text-primary);
   margin-left: 0.75rem;
   width: 100%;
   font-size: 0.95rem;
@@ -139,7 +138,7 @@
 .plant-card:hover {
   transform: translateY(-5px);
   border-color: var(--accent);
-  box-shadow: 0 10px 30px rgba(0, 255, 153, 0.1);
+  box-shadow: 0 10px 30px var(--accent-glow);
 }
 
 .card-header {
@@ -218,7 +217,7 @@
 .view-btn:hover {
   background: var(--accent);
   color: var(--bg);
-  box-shadow: 0 0 15px rgba(0, 255, 153, 0.4);
+  box-shadow: 0 0 15px var(--accent-glow);
 }
 
 .no-results {
@@ -226,7 +225,7 @@
   padding: 3rem;
   color: var(--text-secondary);
   grid-column: 1 / -1;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--glass);
   border-radius: 12px;
 }
 
@@ -237,9 +236,9 @@
 }
 
 .nav-history-btn {
-  background: rgba(0, 255, 153, 0.08);
-  border: 1px solid rgba(0, 255, 153, 0.3);
-  color: #00ff99;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  color: var(--accent);
   padding: 8px 16px;
   border-radius: 20px;
   cursor: pointer;
@@ -252,15 +251,15 @@
 }
 
 .nav-history-btn:hover {
-  background: rgba(0, 255, 153, 0.2);
-  box-shadow: 0 0 15px rgba(0, 255, 153, 0.2);
+  background: var(--accent-glow);
+  box-shadow: 0 0 15px var(--accent-glow);
   transform: translateY(-1px);
 }
 
 .nav-downloads-btn {
-  background: rgba(0, 255, 153, 0.08);
-  border: 1px solid rgba(0, 255, 153, 0.3);
-  color: #00ff99;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  color: var(--accent);
   padding: 8px 16px;
   border-radius: 20px;
   cursor: pointer;
@@ -273,15 +272,15 @@
 }
 
 .nav-downloads-btn:hover {
-  background: rgba(0, 255, 153, 0.2);
-  box-shadow: 0 0 15px rgba(0, 255, 153, 0.2);
+  background: var(--accent-glow);
+  box-shadow: 0 0 15px var(--accent-glow);
   transform: translateY(-1px);
 }
 
 .nav-lang-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #fff;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
   padding: 8px 14px;
   border-radius: 20px;
   cursor: pointer;
@@ -290,12 +289,12 @@
 }
 
 .nav-lang-btn:hover {
-  border-color: #00ff99;
-  color: #00ff99;
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .nav-email {
-  color: #888;
+  color: var(--text-secondary);
   font-size: 13px;
   display: flex;
   align-items: center;
@@ -305,7 +304,7 @@
 .nav-logout-btn {
   background: rgba(255, 80, 80, 0.08);
   border: 1px solid rgba(255, 80, 80, 0.3);
-  color: #ff5050;
+  color: var(--danger);
   padding: 8px 16px;
   border-radius: 20px;
   cursor: pointer;
@@ -339,9 +338,9 @@
   justify-content: space-between;
   align-items: center;
   padding: 14px 32px;
-  background: rgba(255,255,255,0.03);
+  background: var(--glass);
   backdrop-filter: blur(16px);
-  border-bottom: 1px solid rgba(0,255,153,0.1);
+  border-bottom: 1px solid var(--glass-border);
   position: sticky;
   top: 0;
   z-index: 100;
@@ -351,15 +350,15 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  color: #00ff99;
+  color: var(--accent);
   font-weight: 800;
   font-size: 18px;
 }
 
 .nav-btn {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(0,255,153,0.2);
-  color: #fff;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
   padding: 8px 16px;
   border-radius: 20px;
   cursor: pointer;
@@ -369,15 +368,15 @@
 }
 
 .nav-btn:hover {
-  border-color: #00ff99;
-  color: #00ff99;
-  box-shadow: 0 0 10px rgba(0,255,153,0.2);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 0 10px var(--accent-glow);
 }
 
 .user-email-btn {
-  background: rgba(0,255,153,0.08);
-  border: 1px solid rgba(0,255,153,0.3);
-  color: #00ff99;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  color: var(--accent);
   padding: 8px 16px;
   border-radius: 20px;
   cursor: pointer;
@@ -389,8 +388,8 @@
 }
 
 .user-email-btn:hover {
-  background: rgba(0,255,153,0.15);
-  box-shadow: 0 0 15px rgba(0,255,153,0.2);
+  background: var(--accent-glow);
+  box-shadow: 0 0 15px var(--accent-glow);
 }
 
 .user-dropdown-wrapper {
@@ -401,9 +400,9 @@
   position: absolute;
   top: calc(100% + 8px);
   right: 0;
-  background: rgba(15,15,15,0.95);
+  background: var(--bg-secondary);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(0,255,153,0.2);
+  border: 1px solid var(--glass-border);
   border-radius: 16px;
   padding: 8px;
   min-width: 220px;
@@ -418,7 +417,7 @@
 }
 
 .dropdown-email {
-  color: #888;
+  color: var(--text-secondary);
   font-size: 12px;
   padding: 8px 12px;
   word-break: break-all;
@@ -426,7 +425,7 @@
 
 .dropdown-divider {
   border: none;
-  border-top: 1px solid rgba(255,255,255,0.08);
+  border-top: 1px solid var(--glass-border);
   margin: 4px 0;
 }
 
@@ -434,7 +433,7 @@
   width: 100%;
   background: transparent;
   border: none;
-  color: #fff;
+  color: var(--text-primary);
   padding: 10px 12px;
   border-radius: 10px;
   cursor: pointer;
@@ -447,19 +446,19 @@
 }
 
 .dropdown-item:hover {
-  background: rgba(0,255,153,0.08);
-  color: #00ff99;
+  background: var(--accent-glow);
+  color: var(--accent);
 }
 
 .logout-item:hover {
   background: rgba(255,80,80,0.08);
-  color: #ff6464;
+  color: var(--danger);
 }
 
 .lang-btn {
-  background: rgba(255,255,255,0.05);
-  border: 1px solid rgba(255,255,255,0.1);
-  color: #fff;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  color: var(--text-primary);
   padding: 8px 14px;
   border-radius: 20px;
   cursor: pointer;
@@ -468,6 +467,6 @@
 }
 
 .lang-btn:hover {
-  border-color: #00ff99;
-  color: #00ff99;
+  border-color: var(--accent);
+  color: var(--accent);
 }

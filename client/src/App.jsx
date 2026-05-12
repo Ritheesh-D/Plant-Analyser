@@ -10,8 +10,7 @@ import ResetPassword from './pages/ResetPassword';
 import Dashboard from './pages/Dashboard';
 import Scan from './pages/Scan';
 import Result from './pages/Result';
-import History from './pages/History';
-import Downloads from './pages/Downloads';
+import PlantDetail from './pages/PlantDetail';
 import ManageAccount from './pages/ManageAccount';
 
 // Components
@@ -37,8 +36,7 @@ function App() {
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="/scan" element={<PrivateRoute><Scan /></PrivateRoute>} />
         <Route path="/result" element={<PrivateRoute><Result /></PrivateRoute>} />
-        <Route path="/history" element={<PrivateRoute><History /></PrivateRoute>} />
-        <Route path="/downloads" element={<PrivateRoute><Downloads /></PrivateRoute>} />
+        <Route path="/plant/:id" element={<PrivateRoute><PlantDetail /></PrivateRoute>} />
         <Route path="/manage-account" element={<PrivateRoute><ManageAccount /></PrivateRoute>} />
       </Routes>
     </Router>

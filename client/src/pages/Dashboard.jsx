@@ -149,8 +149,7 @@ function Dashboard() {
   };
 
   const handleViewDetails = (plant) => {
-    localStorage.setItem('plant_scan_result', JSON.stringify(plant));
-    navigate('/result', { state: { scanResult: plant } });
+    navigate(`/plant/${plant.id}`);
   };
 
   if (loading) {
@@ -182,16 +181,6 @@ function Dashboard() {
         {/* RIGHT SIDE */}
         <div className="nav-right">
           
-          {/* History Button */}
-          <button className="nav-btn" onClick={() => navigate('/history')}>
-            🕐 {t('history')}
-          </button>
-
-          {/* Download Button */}
-          <button className="nav-btn" onClick={() => navigate('/downloads')}>
-            📄 {t('download')}
-          </button>
-
           {/* User Email Dropdown */}
           <div className="user-dropdown-wrapper">
             <button 

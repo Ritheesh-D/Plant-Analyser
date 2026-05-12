@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Eye, EyeOff, Check, X } from 'lucide-react';
-import { supabase } from '../services/supabase';
+import { useAuth } from '../context/AuthContext';
 import { useLanguage } from '../context/LanguageContext';
 import '../styles/Auth.css';
 
 function Signup() {
   const navigate = useNavigate();
+  const { signup, loginWithGoogle } = useAuth();
   const { t } = useLanguage();
   
   // Form State
@@ -46,7 +47,7 @@ function Signup() {
       lower: /[a-z]/.test(p),
       upper: /[A-Z]/.test(p),
       number: /[0-9]/.test(p),
-      symbol: /[!@#$%^&*()_+{}\[\]:;<>,.?~\\-]/.test(p) /* Added extended symbols to strictly match the request constraints (!@#$%^&*) and typical others */
+      symbol: /[!@#$%^&*()_+{}\[\]:;<>,.?~\\-]/.test(p)
     });
   }, [formData.password]);
 
@@ -74,6 +75,14 @@ function Signup() {
     return true;
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      await loginWithGoogle();
+    } catch (err) {
+      setError(err.message || "Google Login failed");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
@@ -83,37 +92,18 @@ function Signup() {
     setLoading(true);
 
     try {
-      // Step 1: Supabase auth signup
-      const { data, error: signupError } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          data: { username: formData.username }   // Store username in user metadata
-        }
-      });
-
-      if (signupError) throw signupError;
-
-      // Step 2: Insert into profiles table
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            email: formData.email,
-            username: formData.username,
-            language_preference: 'en'
-          });
-
-        if (profileError) console.warn('Profile insert error:', profileError);
+      const data = await signup(formData.username, formData.email, formData.password);
+      
+      if (data?.session) {
+        setSuccess(true);
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 1500);
+      } else {
+        // Supabase often requires email confirmation by default
+        setSuccess(true);
+        setError("Account created! Please check your email to confirm your account before logging in.");
       }
-
-      // Step 3: Show success and NAVIGATE to login
-      setSuccess(true);
-      setTimeout(() => {
-        navigate('/login');
-      }, 1500);
-
     } catch (err) {
       setError(err.message || 'Signup failed. Please try again.');
     } finally {
@@ -123,7 +113,6 @@ function Signup() {
 
   return (
     <div className="auth-container">
-      {/* Decorative Particles (Optional - Assuming background is handled globally or just a dark bg) */}
       <div className="auth-card glass-panel">
         <div className="auth-header">
           <h1 className="auth-title glow-text">{t('signupTitle')}</h1>
@@ -131,18 +120,17 @@ function Signup() {
         </div>
 
         {error && <div className="error-box">{error}</div>}
-        {success && <div className="success-box">Account created successfully! Redirecting to login...</div>}
+        {success && <div className="success-box">Account created successfully! Redirecting to dashboard...</div>}
 
         <form onSubmit={handleSubmit} className="auth-form">
-          {/* Username */}
           <div className="input-group">
-            <label>{t('usernameLabel')}</label>
+            <label>First Name</label>
             <div className="input-wrapper">
               <input 
                 type="text"
                 name="username"
                 className="auth-input"
-                placeholder="Enter a unique username"
+                placeholder="Enter your first name"
                 value={formData.username}
                 onChange={handleChange}
                 required
@@ -150,7 +138,6 @@ function Signup() {
             </div>
           </div>
 
-          {/* Email */}
           <div className="input-group">
             <label>{t('emailLabel')}</label>
             <div className="input-wrapper">
@@ -166,7 +153,6 @@ function Signup() {
             </div>
           </div>
 
-          {/* Password */}
           <div className="input-group">
             <label>{t('passwordLabel')}</label>
             <div className="input-wrapper">
@@ -188,7 +174,6 @@ function Signup() {
               </button>
             </div>
             
-            {/* Real-time validation UI */}
             {formData.password.length > 0 && (
               <div className="password-metrics">
                 <div className="strength-bar-container">
@@ -218,7 +203,6 @@ function Signup() {
             )}
           </div>
 
-          {/* Confirm Password */}
           <div className="input-group">
             <label>{t('confirmPasswordLabel')}</label>
             <div className="input-wrapper">
@@ -250,7 +234,19 @@ function Signup() {
           </button>
         </form>
 
-        <div className="auth-footer">
+        <div className="social-login">
+          <div className="social-divider">
+            <span>OR</span>
+          </div>
+          <div className="social-btns">
+            <button className="social-btn google" onClick={handleGoogleLogin}>
+              <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" width="20" />
+              Continue with Google
+            </button>
+          </div>
+        </div>
+
+        <div className="auth-footer" style={{ marginTop: '2rem' }}>
           {t('hasAccount')} <Link to="/login" className="auth-link">{t('loginLink')}</Link>
         </div>
       </div>

@@ -1,5 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
+import Groq from 'groq-sdk';
+
 dotenv.config();
 
 const router = express.Router();
@@ -9,9 +11,9 @@ router.post('/', async (req, res) => {
     const { message, language, history } = req.body;
     if (!message) return res.status(400).json({ error: 'No message' });
 
-    console.log('Chat message:', message, 'Language:', language);
+    console.log('--- Chatbot Request (Groq) ---');
+    console.log('Language:', language);
 
-    const Groq = (await import('groq-sdk')).default;
     const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
     const systemPrompt = language === 'ta'
@@ -42,8 +44,15 @@ router.post('/', async (req, res) => {
     return res.json({ reply });
 
   } catch (err) {
-    console.error('Chat error:', err.message);
-    return res.json({ reply: 'Sorry I am temporarily unavailable. Please try again later.' });
+    console.error('❌ GROQ CHATBOT ERROR:', err.message);
+    
+    if (err.message.includes('organization_restricted') || err.message.includes('403')) {
+      return res.json({ 
+        reply: "⚠️ Your Groq API account is restricted or the model is unavailable. Please visit https://console.groq.com/ to check your account status, billing, or usage limits. You might need to add a payment method even for the free tier now." 
+      });
+    }
+
+    return res.json({ reply: 'Sorry, I am temporarily unavailable. Please try again later. Error: ' + err.message });
   }
 });
 
