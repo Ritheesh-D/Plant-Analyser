@@ -35,7 +35,7 @@ router.post('/', upload.single('image'), async (req, res) => {
 
     imagePath = req.file.path;
     const language = req.body.language || 'en';
-    
+
     console.log('=== SCAN START ===');
     console.log('Language:', language);
     console.log('Calling Flask ML Model...');
@@ -53,19 +53,19 @@ router.post('/', upload.single('image'), async (req, res) => {
     });
     const flaskData = axiosResponse.data;
     console.log('Flask parsed:', flaskData);
-    
+
     if (flaskData.error) throw new Error('Flask error: ' + flaskData.error);
-    
+
     const plantName = flaskData.plant;
     const confidence = flaskData.confidence;
     console.log('✅ Plant identified:', plantName, confidence + '%');
 
     // Find the plant in our plants list (it matches by common name from ML usually)
     let foundPlant = plants.find(p => p.commonName.toLowerCase() === plantName.toLowerCase() || p.scientificName.toLowerCase() === plantName.toLowerCase());
-    
+
     // Fallback search if not exactly matching
-    if(!foundPlant) {
-       foundPlant = plants.find(p => plantName.toLowerCase().includes(p.commonName.toLowerCase()));
+    if (!foundPlant) {
+      foundPlant = plants.find(p => plantName.toLowerCase().includes(p.commonName.toLowerCase()));
     }
 
     if (!foundPlant) {
@@ -86,20 +86,20 @@ router.post('/', upload.single('image'), async (req, res) => {
           }
           Ensure all arrays have at least 3-4 detailed entries if possible.
         `;
-        
+
         const chatCompletion = await groq.chat.completions.create({
           messages: [{ role: 'user', content: groqPrompt }],
           model: 'llama-3.3-70b-versatile',
           temperature: 0.1,
           response_format: { type: 'json_object' }
         });
-        
+
         const responseText = chatCompletion.choices[0].message.content;
         foundPlant = JSON.parse(responseText);
         console.log('✅ Groq provided details successfully!');
       } catch (err) {
         console.error('❌ GROQ SCAN ERROR:', err.message);
-        
+
         if (err.message.includes('organization_restricted')) {
           console.error('⚠️ Groq Account Restricted. Please check billing.');
         }
@@ -129,8 +129,9 @@ router.post('/', upload.single('image'), async (req, res) => {
       confidence: Math.round(confidence)
     };
 
-    if (imagePath && fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
-    return res.json(result);
+    const imageUrl = `/uploads/${path.basename(imagePath)}`;
+
+    return res.json({ ...result, image_url: imageUrl });
 
   } catch (err) {
     console.error('❌ Scan Error:', err.message);

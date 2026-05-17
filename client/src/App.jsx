@@ -24,14 +24,14 @@ function App() {
       {/* Global components like Chatbot remain here */}
       <ParticlesBackground />
       <Chatbot />
-      
+
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        
+
         {/* Protected Routes */}
         <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
         <Route path="/scan" element={<PrivateRoute><Scan /></PrivateRoute>} />

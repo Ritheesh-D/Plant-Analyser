@@ -161,6 +161,11 @@ function Scan() {
       const plantData = data.plant || data.result || data.data || data;
       console.log('=== PLANT DATA SAVED ===', plantData);
 
+      // Use the permanent URL from the backend if available
+      const backendUrl = API_URL.replace('/api', '');
+      const finalImageUrl = data.image_url ? `${backendUrl}${data.image_url}` : imageUrl;
+      
+      localStorage.setItem('scanned_image', finalImageUrl);
       localStorage.setItem('plant_scan_result', JSON.stringify(plantData));
       navigate('/result');
 

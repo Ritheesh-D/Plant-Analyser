@@ -13,8 +13,6 @@ const generateToken = (id) => {
   });
 };
 
-// @desc    Register a new user
-// @route   POST /api/user/signup
 router.post('/signup', async (req, res) => {
   const { username, email, password } = req.body;
 
